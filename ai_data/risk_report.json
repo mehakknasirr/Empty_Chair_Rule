@@ -1,0 +1,82 @@
+[
+  {
+    "student_id": "ST001",
+    "student_name": "Ali Khan",
+    "risk_score": 22,
+    "risk_level": "Low",
+    "summary": "",
+    "flagged": false
+  },
+  {
+    "student_id": "ST002",
+    "student_name": "Ahmed Raza",
+    "risk_score": 29,
+    "risk_level": "Low",
+    "summary": "",
+    "flagged": false
+  },
+  {
+    "student_id": "ST003",
+    "student_name": "Sara Ahmed",
+    "risk_score": 70,
+    "risk_level": "High",
+    "summary": "Sara Ahmed was absent 9 times after tests",
+    "flagged": true
+  },
+  {
+    "student_id": "ST004",
+    "student_name": "Hassan Ali",
+    "risk_score": 24,
+    "risk_level": "Low",
+    "summary": "",
+    "flagged": false
+  },
+  {
+    "student_id": "ST005",
+    "student_name": "Ayesha Khan",
+    "risk_score": 30,
+    "risk_level": "Medium",
+    "summary": "Ayesha Khan was absent 4 times after holidays",
+    "flagged": true
+  },
+  {
+    "student_id": "ST006",
+    "student_name": "Usman Malik",
+    "risk_score": 18,
+    "risk_level": "Low",
+    "summary": "",
+    "flagged": false
+  },
+  {
+    "student_id": "ST007",
+    "student_name": "Fatima Noor",
+    "risk_score": 73,
+    "risk_level": "High",
+    "summary": "Fatima Noor was absent 9 times after holidays",
+    "flagged": true
+  },
+  {
+    "student_id": "ST008",
+    "student_name": "Hamza Shah",
+    "risk_score": 45,
+    "risk_level": "Medium",
+    "summary": "Hamza Shah was absent 6 times after tests",
+    "flagged": true
+  },
+  {
+    "student_id": "ST009",
+    "student_name": "Zainab Iqbal",
+    "risk_score": 71,
+    "risk_level": "High",
+    "summary": "Zainab Iqbal was absent 9 times after PTM days",
+    "flagged": true
+  },
+  {
+    "student_id": "ST010",
+    "student_name": "Bilal Ahmed",
+    "risk_score": 34,
+    "risk_level": "Medium",
+    "summary": "Bilal Ahmed was absent 4 times after holidays",
+    "flagged": true
+  }
+]

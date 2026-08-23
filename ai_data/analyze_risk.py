@@ -1,11 +1,13 @@
 import pandas as pd
+import json
 
 # --------------------------------------------------
 # FILE PATHS
 # --------------------------------------------------
 
 input_file = "ai_data/attendance_dataset.csv"
-output_file = "ai_data/risk_analysis.csv"
+csv_output_file = "ai_data/risk_analysis.csv"
+json_output_file = "ai_data/risk_report.json"
 
 
 # --------------------------------------------------
@@ -79,6 +81,7 @@ for student_id in df["student_id"].unique():
             ).mean()
 
         else:
+
             absence_rate = 0
 
         event_rates[event] = absence_rate
@@ -94,6 +97,19 @@ for student_id in df["student_id"].unique():
     )
 
     strongest_rate = event_rates[strongest_event]
+
+
+    # --------------------------------------------------
+    # COUNT ABSENCES FOR STRONGEST EVENT
+    # --------------------------------------------------
+
+    strongest_event_days = student_df[
+        student_df["day_event"] == strongest_event
+    ]
+
+    strongest_event_absences = (
+        strongest_event_days["attendance_status"] == "Absent"
+    ).sum()
 
 
     # --------------------------------------------------
@@ -165,7 +181,48 @@ for student_id in df["student_id"].unique():
 
 
     # --------------------------------------------------
-    # STORE STUDENT RESULT
+    # NATURAL LANGUAGE SUMMARY
+    # --------------------------------------------------
+
+    if risk_level in ["Medium", "High"]:
+
+        if strongest_event == "Post_Test":
+            summary = (
+                f"{student_name} was absent "
+                f"{strongest_event_absences} times after tests"
+            )
+
+        elif strongest_event == "Post_Holiday":
+            summary = (
+                f"{student_name} was absent "
+                f"{strongest_event_absences} times after holidays"
+            )
+
+        elif strongest_event == "Post_PTM":
+            summary = (
+                f"{student_name} was absent "
+                f"{strongest_event_absences} times after PTM days"
+            )
+
+        else:
+            summary = (
+                f"{student_name} has an elevated attendance risk"
+            )
+
+    else:
+
+        summary = ""
+
+
+    # --------------------------------------------------
+    # FLAGGED STATUS
+    # --------------------------------------------------
+
+    flagged = risk_level in ["Medium", "High"]
+
+
+    # --------------------------------------------------
+    # STORE FULL ANALYSIS RESULT
     # --------------------------------------------------
 
     results.append({
@@ -179,6 +236,10 @@ for student_id in df["student_id"].unique():
         "risk_level": risk_level,
 
         "trigger_event": trigger_event,
+
+        "summary": summary,
+
+        "flagged": flagged,
 
         "overall_absence_rate": round(
             overall_absence_rate * 100,
@@ -215,13 +276,48 @@ risk_df = pd.DataFrame(results)
 
 
 # --------------------------------------------------
-# SAVE RISK ANALYSIS
+# SAVE CSV FOR ANALYSIS / DEBUGGING
 # --------------------------------------------------
 
 risk_df.to_csv(
-    output_file,
+    csv_output_file,
     index=False
 )
+
+
+# --------------------------------------------------
+# CREATE FINAL BACKEND JSON
+# --------------------------------------------------
+
+risk_report = []
+
+for result in results:
+
+    risk_report.append({
+        "student_id": result["student_id"],
+        "student_name": result["student_name"],
+        "risk_score": result["risk_score"],
+        "risk_level": result["risk_level"],
+        "summary": result["summary"],
+        "flagged": result["flagged"]
+    })
+
+
+# --------------------------------------------------
+# SAVE JSON
+# --------------------------------------------------
+
+with open(
+    json_output_file,
+    "w",
+    encoding="utf-8"
+) as file:
+
+    json.dump(
+        risk_report,
+        file,
+        indent=2
+    )
 
 
 # --------------------------------------------------
@@ -230,7 +326,8 @@ risk_df.to_csv(
 
 print("Risk analysis completed successfully!")
 
-print(f"Results saved to: {output_file}")
+print(f"CSV saved to: {csv_output_file}")
+print(f"JSON saved to: {json_output_file}")
 
 print("\nStudent Risk Analysis:")
 
@@ -241,7 +338,8 @@ print(
             "student_name",
             "risk_score",
             "risk_level",
-            "trigger_event"
+            "summary",
+            "flagged"
         ]
     ].to_string(index=False)
 )
