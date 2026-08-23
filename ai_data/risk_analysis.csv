@@ -1,0 +1,11 @@
+student_id,student_name,risk_score,risk_level,trigger_event,overall_absence_rate,normal_absence_rate,post_test_absence_rate,post_holiday_absence_rate,post_ptm_absence_rate
+ST001,Ali Khan,22,Low,Absent after Test,11.11,7.94,33.33,11.11,11.11
+ST002,Ahmed Raza,29,Low,Absent after Holiday,16.67,11.11,11.11,44.44,33.33
+ST003,Sara Ahmed,70,High,Absent after Test,22.22,14.29,100.0,22.22,0.0
+ST004,Hassan Ali,24,Low,Absent after PTM,10.0,4.76,11.11,22.22,33.33
+ST005,Ayesha Khan,30,Medium,Absent after Holiday,12.22,7.94,22.22,44.44,0.0
+ST006,Usman Malik,18,Low,Absent after Test,21.11,15.87,33.33,33.33,33.33
+ST007,Fatima Noor,73,High,Absent after Holiday,18.89,9.52,11.11,100.0,11.11
+ST008,Hamza Shah,45,Medium,Absent after Test,22.22,14.29,66.67,11.11,44.44
+ST009,Zainab Iqbal,71,High,Absent after PTM,21.11,12.7,0.0,22.22,100.0
+ST010,Bilal Ahmed,34,Medium,Absent after Holiday,15.56,4.76,33.33,44.44,44.44

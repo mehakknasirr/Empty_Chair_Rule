@@ -2,7 +2,13 @@ import pandas as pd
 import random
 from datetime import date, timedelta
 
-# Student information
+# Make the dataset reproducible
+random.seed(42)
+
+# --------------------------------------------------
+# STUDENT INFORMATION
+# --------------------------------------------------
+
 students = [
     ("ST001", "Ali Khan"),
     ("ST002", "Ahmed Raza"),
@@ -16,55 +22,91 @@ students = [
     ("ST010", "Bilal Ahmed"),
 ]
 
-# Possible day events
-events = [
-    "Normal_Day",
-    "Post_Test",
-    "Post_Holiday",
-    "Post_PTM"
-]
+# --------------------------------------------------
+# DAY EVENTS
+# --------------------------------------------------
 
-# Generate dates
+events = (
+    ["Normal_Day"] * 63
+    + ["Post_Test"] * 9
+    + ["Post_Holiday"] * 9
+    + ["Post_PTM"] * 9
+)
+
+# Shuffle the event dates
+random.shuffle(events)
+
+# --------------------------------------------------
+# INTENTIONAL STUDENT PATTERNS
+# --------------------------------------------------
+
+risk_patterns = {
+    "ST003": "Post_Test",
+    "ST007": "Post_Holiday",
+    "ST009": "Post_PTM"
+}
+
+# --------------------------------------------------
+# GENERATE DATA
+# --------------------------------------------------
+
 start_date = date(2026, 1, 1)
-number_of_days = 90
-
 data = []
 
-for day in range(number_of_days):
-    current_date = start_date + timedelta(days=day)
+for day in range(90):
 
-    # Randomly assign an event to each day
-    day_event = random.choices(
-        events,
-        weights=[70, 10, 10, 10]
-    )[0]
+    current_date = start_date + timedelta(days=day)
+    day_event = events[day]
 
     for student_id, student_name in students:
 
-        # Create realistic attendance patterns
-        if day_event == "Post_Test":
-            attendance_status = random.choices(
-                ["Present", "Absent"],
-                weights=[65, 35]
-            )[0]
+        # ------------------------------------------
+        # INTENTIONAL PATTERN STUDENTS
+        # ------------------------------------------
 
-        elif day_event == "Post_Holiday":
-            attendance_status = random.choices(
-                ["Present", "Absent"],
-                weights=[70, 30]
-            )[0]
+        if student_id in risk_patterns:
 
-        elif day_event == "Post_PTM":
-            attendance_status = random.choices(
-                ["Present", "Absent"],
-                weights=[75, 25]
-            )[0]
+            trigger_event = risk_patterns[student_id]
+
+            if day_event == trigger_event:
+                # Deliberately create a strong pattern
+                attendance_status = "Absent"
+            else:
+                # Normal attendance on other days
+                attendance_status = random.choices(
+                    ["Present", "Absent"],
+                    weights=[90, 10]
+                )[0]
+
+        # ------------------------------------------
+        # NORMAL STUDENTS
+        # ------------------------------------------
 
         else:
-            attendance_status = random.choices(
-                ["Present", "Absent"],
-                weights=[90, 10]
-            )[0]
+
+            if day_event == "Post_Test":
+                attendance_status = random.choices(
+                    ["Present", "Absent"],
+                    weights=[65, 35]
+                )[0]
+
+            elif day_event == "Post_Holiday":
+                attendance_status = random.choices(
+                    ["Present", "Absent"],
+                    weights=[70, 30]
+                )[0]
+
+            elif day_event == "Post_PTM":
+                attendance_status = random.choices(
+                    ["Present", "Absent"],
+                    weights=[75, 25]
+                )[0]
+
+            else:
+                attendance_status = random.choices(
+                    ["Present", "Absent"],
+                    weights=[90, 10]
+                )[0]
 
         data.append({
             "student_id": student_id,
@@ -74,15 +116,33 @@ for day in range(number_of_days):
             "day_event": day_event
         })
 
-# Create DataFrame
+# --------------------------------------------------
+# CREATE DATAFRAME
+# --------------------------------------------------
+
 df = pd.DataFrame(data)
 
-# Save CSV inside ai_data
+# --------------------------------------------------
+# SAVE CSV
+# --------------------------------------------------
+
 output_file = "ai_data/attendance_dataset.csv"
 df.to_csv(output_file, index=False)
 
-print(f"Dataset generated successfully!")
+# --------------------------------------------------
+# DISPLAY INFORMATION
+# --------------------------------------------------
+
+print("Dataset generated successfully!")
 print(f"Rows: {len(df)}")
 print(f"Saved to: {output_file}")
+
 print("\nColumns:")
 print(df.columns.tolist())
+
+print("\nDay event distribution:")
+print(df["day_event"].value_counts())
+
+print("\nIntentional patterns:")
+for student_id, event in risk_patterns.items():
+    print(f"{student_id}: Absent after {event}")
