@@ -9,16 +9,16 @@ st.set_page_config(page_title="The Empty Chair Rule", page_icon="🪑", layout="
 
 FASTAPI_URL = "http://127.0.0.1:8000"
 
-def get_backend_stats():
+def get_risk_data():
     try:
-        response = requests.get(f"{FASTAPI_URL}/api/dashboard/stats", timeout=2)
+        response = requests.get(f"{FASTAPI_URL}/api/risk-report", timeout=2)
         if response.status_code == 200:
             return response.json(), True
     except Exception:
         pass
     return None, False
 
-api_stats, is_connected = get_backend_stats()
+api_data, is_connected = get_risk_data()
 
 # ============================================================
 # 2. LIGHT / DARK THEME COMPATIBLE CSS
@@ -44,13 +44,6 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid rgba(128, 128, 128, 0.2) !important;
 }
 
-span[data-baseweb="tag"] {
-    background-color: #EE5959 !important;
-    border: none !important;
-    border-radius: 4px !important;
-    color: #FFFFFF !important;
-}
-
 /* ---------- Hero Section ---------- */
 .hero {
     background: linear-gradient(135deg, rgba(22, 27, 34, 0.8) 0%, rgba(14, 17, 23, 0.8) 100%);
@@ -58,7 +51,7 @@ span[data-baseweb="tag"] {
     border-radius: 12px;
     padding: 32px 36px;
     margin-bottom: 24px;
-    position: relative; 
+    position: relative;
     overflow: hidden;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
@@ -101,7 +94,7 @@ span[data-baseweb="tag"] {
 }
 .seat.filled { background: #EE5959; }
 .seat.cooling { background: rgba(238, 89, 89, 0.3); border: 1px solid #EE5959; }
-.seat.empty { background: transparent; border: 1px dashed #8B949E; } 
+.seat.empty { background: transparent; border: 1px dashed #8B949E; }
 
 .row-label {
     font-family: 'JetBrains Mono', monospace;
@@ -151,7 +144,7 @@ span[data-baseweb="tag"] {
     display: inline-block;
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
-    letter-spacing: 1px; 
+    letter-spacing: 1px;
     text-transform: uppercase;
     padding: 3px 8px;
     border-radius: 4px;
@@ -191,7 +184,7 @@ div[data-testid="stMetric"] {
     color: #EE5959 !important;
     border-bottom: 2px solid #EE5959 !important;
     font-weight: 600;
-} 
+}
 
 /* ---------- Buttons & Action Containers ---------- */
 .stButton button, button[kind="primary"] {
@@ -229,16 +222,16 @@ st.markdown(f"""
 # ============================================================
 st.sidebar.markdown("### Roll Call Settings")
 
-search_query = st.sidebar.text_input("Search name or ID", placeholder="e.g. STU001")
+search_query = st.sidebar.text_input("Search name or ID", placeholder="e.g. ST001")
 selected_risk = st.sidebar.multiselect("Risk level", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
 show_flagged_only = st.sidebar.checkbox("Flagged only")
 
 st.sidebar.divider()
 
 if is_connected:
-    st.sidebar.success("Connected to live backend")
+    st.sidebar.success("✅ Connected to Live API")
 else:
-    st.sidebar.info("Preview mode — sample data")
+    st.sidebar.error("❌ API Offline")
 
 # ============================================================
 # 5. TABS CONTENT
@@ -252,74 +245,84 @@ tab1, tab2, tab3, tab4 = st.tabs([
 
 # --- TAB 1: ROLL CALL ---
 with tab1:
-    if is_connected and api_stats:
+    if is_connected and api_data:
+        # Calculate dynamic metrics from Rehan's API data
+        total_students = len(api_data)
+        high_risk_count = sum(1 for s in api_data if s.get("risk_level") == "High")
+        medium_risk_count = sum(1 for s in api_data if s.get("risk_level") == "Medium")
+        
         m1, m2, m3 = st.columns(3)
-        m1.metric("TOTAL STUDENTS", api_stats.get("total_students", 0))
-        m2.metric("HIGH RISK", api_stats.get("high_risk_count", 0))
-        m3.metric("MEDIUM RISK", api_stats.get("medium_risk_count", 0))
+        m1.metric("TOTAL STUDENTS", total_students)
+        m2.metric("HIGH RISK", high_risk_count)
+        m3.metric("MEDIUM RISK", medium_risk_count)
         st.write("")
+
+        st.markdown('<div class="row-label">Active Seating Chart</div>', unsafe_allow_html=True)
+
+        cols = st.columns(3)
+        tag_map = {
+            "critical": ("tag-critical", "🚨 High Risk"),
+            "watch": ("tag-watch", "⚠️ Watchlist"),
+            "stable": ("tag-stable", "✓ Low Risk")
+        }
+        
+        # Loop over real API data
+        for i, s in enumerate(api_data):
+            # Apply Sidebar Filters
+            if s.get("risk_level") not in selected_risk:
+                continue
+            if show_flagged_only and not s.get("flagged"):
+                continue
+            if search_query and search_query.lower() not in s.get("student_name", "").lower() and search_query.lower() not in s.get("student_id", "").lower():
+                continue
+
+            with cols[i % 3]:
+                # Map API Risk Level to Status CSS
+                risk_lvl = s.get("risk_level", "Low")
+                if risk_lvl == "High":
+                    status = "critical"
+                    color = "#EE5959"
+                elif risk_lvl == "Medium":
+                    status = "watch"
+                    color = "#D29922"
+                else:
+                    status = "stable"
+                    color = "#2EA043"
+
+                tag_class, tag_label = tag_map[status]
+                risk_score = s.get("risk_score", 0)
+                
+                # Dynamic Seat Meter based on score
+                presence = max(0, 100 - risk_score)
+                filled_blocks = round(presence / 10)
+                blocks = "".join(f'<div style="background:{"#EE5959" if j >= filled_blocks else "rgba(128,128,128,0.3)"};"></div>' for j in range(10))
+               
+                st.markdown(f"""
+                    <div class="card-{status}">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span class="roll-name">{s.get('student_name', 'Unknown')}</span>
+                        </div>
+                        <span class="roll-id">{s.get('student_id', 'N/A')}</span><br>
+                        <span class="roll-tag {tag_class}">{tag_label}</span>
+                        <div class="seat-meter">{blocks}</div>
+                        <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">
+                            Risk Score: <b>{risk_score}%</b>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+               
+                with st.expander("View Analysis Summary"):
+                    note = s.get('summary', '')
+                    if not note:
+                        note = "Normal attendance patterns."
+                    st.write(f"**AI Note:** {note}")
+                    st.write(f"**Flagged for Review:** {'Yes' if s.get('flagged') else 'No'}")
     else:
-        m1, m2, m3 = st.columns(3)
-        m1.metric("TOTAL STUDENTS", "2")
-        m2.metric("HIGH RISK", "1")
-        m3.metric("MEDIUM RISK", "0")
-        st.write("")
-
-    st.markdown('<div class="row-label">Active Seating Chart</div>', unsafe_allow_html=True)
-
-    students = [
-        {"name": "Ali Khan", "id": "STU001", "risk": 85, "delta": "+15% this week",
-         "status": "critical", "color": "#EE5959", "dept": "BS Information Technology", "sem": "4th Semester",
-         "attendance": "52% (Critical)", "note": "Missed 3 consecutive lab sessions."},
-        {"name": "Ayesha Ahmed", "id": "STU002", "risk": 15, "delta": "-5% this week",
-         "status": "stable", "color": "#2EA043", "dept": "BS Information Technology", "sem": "4th Semester",
-         "attendance": "94% (Excellent)", "note": "Active participant in group repositories."},
-        {"name": "Priya Raman", "id": "STU003", "risk": 45, "delta": "Stable",
-         "status": "watch", "color": "#D29922", "dept": "BS Information Technology", "sem": "4th Semester",
-         "attendance": "76% (Moderate)", "note": "Irregular attendance post-break."},
-    ]
-
-    cols = st.columns(3)
-    tag_map = {
-        "critical": ("tag-critical", "🚨 Needs Attention"), 
-        "watch": ("tag-watch", "⚠️ Watching"), 
-        "stable": ("tag-stable", "✓ Stable")
-    }
-    
-    for col, s in zip(cols, students):
-        with col:
-            tag_class, tag_label = tag_map[s["status"]]
-            
-            # Custom Meter Blocks based on individual Risk Color
-            presence = 100 - s["risk"]
-            filled_blocks = round(presence / 10)
-            blocks = "".join(f'<div style="background:{"#EE5959" if i >= filled_blocks else "rgba(128,128,128,0.3)"};"></div>' for i in range(10))
-            
-            # Distinct Card HTML Block
-            st.markdown(f"""
-                <div class="card-{s['status']}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span class="roll-name">{s["name"]}</span>
-                    </div>
-                    <span class="roll-id">{s["id"]}</span><br>
-                    <span class="roll-tag {tag_class}">{tag_label}</span>
-                    <div class="seat-meter">{blocks}</div>
-                    <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">
-                        Risk Score: <b>{s['risk']}%</b> <span style="opacity: 0.7; font-size:11px;">({s['delta']})</span>
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-            
-            with st.expander("View Student Detail"):
-                st.write(f"**Department:** {s['dept']}")
-                st.write(f"**Semester:** {s['sem']}")
-                st.write(f"**Attendance:** {s['attendance']}")
-                st.write(f"**Notes:** {s['note']}")
+        st.warning("Waiting for data from API...")
 
 # --- TAB 2: ATTENDANCE PATTERNS ---
 with tab2:
     st.markdown('<div class="row-label">Weekly Fill Rate</div>', unsafe_allow_html=True)
-    
     chart_data = pd.DataFrame(
         {
             "Week 1": [90, 85, 88],
@@ -327,46 +330,52 @@ with tab2:
             "Week 3": [75, 60, 70],
             "Week 4": [52, 94, 76]
         },
-        index=["Ali Khan", "Ayesha Ahmed", "Priya Raman"]
+        index=["Ali Khan", "Ahmed Raza", "Sara Ahmed"]
     ).T
     st.line_chart(chart_data, color=["#EE5959", "#2EA043", "#D29922"])
 
 # --- TAB 3: EARLY ALERTS ---
 with tab3:
     st.markdown('<div class="row-label">System-Generated Notes</div>', unsafe_allow_html=True)
-    st.error("**Early Alert — Ali Khan (STU001)**\n\nAli has missed 3 consecutive lab sessions. Risk score spiked to 85%.")
+    if is_connected and api_data:
+        for s in api_data:
+            if s.get("flagged"):
+                st.error(f"**Early Alert — {s.get('student_name')} ({s.get('student_id')})**\n\n{s.get('summary')}")
+    else:
+        st.info("No active alerts.")
 
-# --- TAB 4: INTERVENTIONS (FULLY INTERACTIVE) ---
+# --- TAB 4: INTERVENTIONS ---
 with tab4:
     st.markdown('<div class="row-label">Suggested Next Steps</div>', unsafe_allow_html=True)
     col_a, col_b = st.columns(2)
-    
+   
     with col_a:
         with st.container(border=True):
             st.subheader("High-Risk Intervention")
             st.write("1. Schedule 1-on-1 check-in within 48 hours.\n2. Notify academic advisor.")
             st.write("")
-            
-            # Interactive Alert Button
-            if st.button("🚨 Send Alert", type="primary", key="btn_send_alert", use_container_width=True):
-                st.toast("📧 Automated alert sent to Academic Advisor & Student!", icon="✅")
-                st.success("Alert notification dispatched successfully for STU001 (Ali Khan).")
+            if st.button("🚨 Send Bulk Alert to High Risk", type="primary", key="btn_send_alert", use_container_width=True):
+                st.toast("📧 Automated alerts dispatched successfully!", icon="✅")
+                st.success("Alerts sent to Academic Advisors.")
 
     with col_b:
         with st.container(border=True):
             st.subheader("Class-Wide Actions")
-            st.write("1. Share lab review recordings.\n2. Add short interactive quizzes.")
+            st.write("1. Download latest risk dataset.\n2. Add short interactive quizzes.")
             st.write("")
-            
-            # Downloadable Summary Data
-            report_data = "Student_ID,Name,Department,Semester,Attendance_Rate,Risk_Score,Status\nSTU001,Ali Khan,BS IT,4th,52%,85%,High Risk\nSTU002,Ayesha Ahmed,BS IT,4th,94%,15%,Low Risk\nSTU003,Priya Raman,BS IT,4th,76%,45%,Medium Risk"
-            
-            # Interactive Download Button
-            st.download_button(
-                label="📥 Download Class Report",
-                data=report_data,
-                file_name="Class_Risk_Summary_Report.csv",
-                mime="text/csv",
-                key="btn_download_report",
-                use_container_width=True
-            )
+           
+            # Dynamic CSV Generation
+            if is_connected and api_data:
+                df_export = pd.DataFrame(api_data)
+                csv_data = df_export.to_csv(index=False).encode('utf-8')
+                
+                st.download_button(
+                    label="📥 Download Live Class Report (CSV)",
+                    data=csv_data,
+                    file_name="Live_Risk_Summary_Report.csv",
+                    mime="text/csv",
+                    key="btn_download_report",
+                    use_container_width=True
+                )
+            else:
+                st.write("Waiting for data to generate report...")
