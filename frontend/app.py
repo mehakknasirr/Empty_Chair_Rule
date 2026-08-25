@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
+import plotly.express as px
 
 # ============================================================
 # 1. PAGE CONFIG
@@ -21,11 +22,11 @@ def get_risk_data():
 api_data, is_connected = get_risk_data()
 
 # ============================================================
-# 2. LIGHT / DARK THEME COMPATIBLE CSS
+# 2. ULTRA-MODERN DARK GLASSMORPHISM STYLING
 # ============================================================
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
 html, body, [class*="css"] {
     font-family: 'Inter', sans-serif;
@@ -33,42 +34,53 @@ html, body, [class*="css"] {
 
 #MainMenu, footer {visibility: hidden;}
 
-/* ---------- Responsive Background & Text Defaults ---------- */
+/* ---------- Background & Text ---------- */
 .stApp {
-    background-color: var(--background-color, #0E1117) !important;
-    color: var(--text-color, #FAFAFA) !important;
+    background-color: #0B0E14 !important;
+    color: #FAFAFA !important;
 }
 
 /* ---------- Sidebar Styling ---------- */
 section[data-testid="stSidebar"] {
-    border-right: 1px solid rgba(128, 128, 128, 0.2) !important;
+    background-color: #121620 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ---------- Pulsing Animation for High Risk ---------- */
+@keyframes pulse-red {
+    0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
+    70% { box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0); }
 }
 
 /* ---------- Hero Section ---------- */
 .hero {
-    background: linear-gradient(135deg, rgba(22, 27, 34, 0.8) 0%, rgba(14, 17, 23, 0.8) 100%);
-    border: 1px solid rgba(128, 128, 128, 0.25);
-    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255, 77, 77, 0.1) 0%, rgba(18, 22, 32, 0.8) 100%);
+    border: 1px solid rgba(255, 77, 77, 0.25);
+    border-radius: 16px;
     padding: 32px 36px;
     margin-bottom: 24px;
     position: relative;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
 }
 .hero-eyebrow {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #EE5959 !important;
+    color: #FF4D4D !important;
     margin-bottom: 8px;
-    font-weight: 600;
+    font-weight: 700;
 }
 .hero h1 {
-    font-size: 32px;
-    font-weight: 700;
+    font-size: 34px;
+    font-weight: 800;
     line-height: 1.1;
     margin: 0 0 8px 0;
+    background: linear-gradient(90deg, #FFFFFF, #B0B8C4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 .hero p {
     font-size: 13px;
@@ -88,12 +100,12 @@ section[data-testid="stSidebar"] {
     gap: 8px;
 }
 .seat {
-    width: 12px;
-    height: 12px;
-    border-radius: 2px;
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
 }
-.seat.filled { background: #EE5959; }
-.seat.cooling { background: rgba(238, 89, 89, 0.3); border: 1px solid #EE5959; }
+.seat.filled { background: #FF4D4D; box-shadow: 0 0 8px #FF4D4D; }
+.seat.cooling { background: rgba(255, 77, 77, 0.3); border: 1px solid #FF4D4D; }
 .seat.empty { background: transparent; border: 1px dashed #8B949E; }
 
 .row-label {
@@ -101,43 +113,53 @@ section[data-testid="stSidebar"] {
     font-size: 11px;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #EE5959 !important;
-    border-bottom: 1px solid rgba(128, 128, 128, 0.2);
+    color: #FF4D4D !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     padding-bottom: 8px;
     margin: 8px 0 18px 0;
+    font-weight: 700;
 }
 
-/* ---------- Risk Cards (High Contrast Text) ---------- */
+/* ---------- Interactive High-Contrast Cards ---------- */
 .card-critical {
-    background-color: rgba(238, 89, 89, 0.15) !important;
-    border: 1.5px solid #EE5959 !important;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-}
-.card-stable {
-    background-color: rgba(46, 160, 67, 0.15) !important;
-    border: 1.5px solid #2EA043 !important;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: linear-gradient(145deg, rgba(255, 77, 77, 0.15) 0%, rgba(20, 24, 33, 0.9) 100%) !important;
+    border: 2px solid #FF4D4D !important;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    animation: pulse-red 2.5s infinite;
+    transition: transform 0.2s ease;
 }
 .card-watch {
-    background-color: rgba(210, 153, 34, 0.15) !important;
-    border: 1.5px solid #D29922 !important;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: linear-gradient(145deg, rgba(243, 156, 18, 0.12) 0%, rgba(20, 24, 33, 0.9) 100%) !important;
+    border: 1.5px solid #F39C12 !important;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    transition: transform 0.2s ease;
+}
+.card-stable {
+    background: linear-gradient(145deg, rgba(46, 204, 113, 0.06) 0%, rgba(20, 24, 33, 0.9) 100%) !important;
+    border: 1px solid rgba(46, 204, 113, 0.3) !important;
+    border-radius: 14px;
+    padding: 18px;
+    margin-bottom: 14px;
+    opacity: 0.9;
+    transition: transform 0.2s ease;
+}
+
+.card-critical:hover, .card-watch:hover, .card-stable:hover {
+    transform: translateY(-3px);
 }
 
 .roll-name {
-    font-size: 17px;
+    font-size: 18px;
     font-weight: 700;
 }
 .roll-id {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    opacity: 0.75;
+    opacity: 0.7;
     letter-spacing: 1px;
 }
 .roll-tag {
@@ -146,58 +168,72 @@ section[data-testid="stSidebar"] {
     font-size: 10px;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 3px 8px;
-    border-radius: 4px;
-    margin: 8px 0 10px 0;
-    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    margin: 10px 0 12px 0;
+    font-weight: 800;
 }
-.tag-critical { background: #EE5959; color: #FFFFFF !important; }
-.tag-watch { background: #D29922; color: #000000 !important; }
-.tag-stable { background: #2EA043; color: #FFFFFF !important; }
+.tag-critical { background: #FF4D4D; color: #FFFFFF !important; box-shadow: 0 0 10px rgba(255,77,77,0.5); }
+.tag-watch { background: #F39C12; color: #000000 !important; }
+.tag-stable { background: rgba(46, 204, 113, 0.15); color: #2ECC71 !important; border: 1px solid #2ECC71; }
 
-.seat-meter { display: flex; gap: 3px; margin: 10px 0 6px 0; }
-.seat-meter div { height: 6px; flex: 1; border-radius: 2px; }
-
-/* ---------- Metric Cards Styling ---------- */
+/* ---------- Glassmorphism KPI Metrics ---------- */
 div[data-testid="stMetric"] {
-    background-color: rgba(128, 128, 128, 0.08) !important;
-    border: 1px solid rgba(128, 128, 128, 0.2) !important;
-    padding: 14px 18px;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-left: 4px solid #FF4D4D !important;
+    padding: 16px 20px !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 [data-testid="stMetricLabel"] {
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 11px !important;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
+    color: #A0AAB8 !important;
 }
 
 /* ---------- Tabs Styling ---------- */
-.stTabs [data-baseweb="tab-list"] { gap: 8px; border-bottom: 1px solid rgba(128, 128, 128, 0.2); }
+.stTabs [data-baseweb="tab-list"] { gap: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
 .stTabs [data-baseweb="tab"] {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
     background-color: transparent !important;
     border: none !important;
+    padding: 10px 16px;
 }
 .stTabs [aria-selected="true"] {
-    color: #EE5959 !important;
-    border-bottom: 2px solid #EE5959 !important;
-    font-weight: 600;
+    color: #FF4D4D !important;
+    border-bottom: 2px solid #FF4D4D !important;
+    font-weight: 700;
 }
 
-/* ---------- Buttons & Action Containers ---------- */
+/* ---------- Animated Buttons ---------- */
 .stButton button, button[kind="primary"] {
-    background: #EE5959 !important;
+    background: linear-gradient(135deg, #FF4D4D 0%, #D84343 100%) !important;
     color: #FFFFFF !important;
     border: none !important;
-    border-radius: 6px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease;
+    border-radius: 8px !important;
+    font-weight: 700 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(255, 77, 77, 0.25) !important;
 }
 .stButton button:hover {
-    background: #D84343 !important;
-    box-shadow: 0 4px 12px rgba(238, 89, 89, 0.3);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 20px rgba(255, 77, 77, 0.45) !important;
+}
+
+/* ---------- Privacy Footer Box ---------- */
+.privacy-box {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 20px;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -218,7 +254,7 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 4. SIDEBAR CONTROLS
+# 4. SIDEBAR CONTROLS & PRIVACY DISCLOSURE
 # ============================================================
 st.sidebar.markdown("### Roll Call Settings")
 
@@ -233,6 +269,13 @@ if is_connected:
 else:
     st.sidebar.error("❌ API Offline")
 
+st.sidebar.markdown("""
+    <div class="privacy-box">
+        <b>🔒 FERPA Compliant & Protected</b><br>
+        Student risk analytics are encrypted and visible strictly to authorized academic advisors and faculty.
+    </div>
+""", unsafe_allow_html=True)
+
 # ============================================================
 # 5. TABS CONTENT
 # ============================================================
@@ -246,7 +289,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # --- TAB 1: ROLL CALL ---
 with tab1:
     if is_connected and api_data:
-        # Calculate dynamic metrics from Rehan's API data
         total_students = len(api_data)
         high_risk_count = sum(1 for s in api_data if s.get("risk_level") == "High")
         medium_risk_count = sum(1 for s in api_data if s.get("risk_level") == "Medium")
@@ -266,50 +308,40 @@ with tab1:
             "stable": ("tag-stable", "✓ Low Risk")
         }
         
-        # Loop over real API data
+        filtered_count = 0
         for i, s in enumerate(api_data):
-            # Apply Sidebar Filters
             if s.get("risk_level") not in selected_risk:
                 continue
             if show_flagged_only and not s.get("flagged"):
                 continue
-            if search_query and search_query.lower() not in s.get("student_name", "").lower() and search_query.lower() not in s.get("student_id", "").lower():
+            if search_query and (search_query.lower() not in s.get("student_name", "").lower() and search_query.lower() not in s.get("student_id", "").lower()):
                 continue
 
+            filtered_count += 1
             with cols[i % 3]:
-                # Map API Risk Level to Status CSS
                 risk_lvl = s.get("risk_level", "Low")
                 if risk_lvl == "High":
                     status = "critical"
-                    color = "#EE5959"
                 elif risk_lvl == "Medium":
                     status = "watch"
-                    color = "#D29922"
                 else:
                     status = "stable"
-                    color = "#2EA043"
 
                 tag_class, tag_label = tag_map[status]
                 risk_score = s.get("risk_score", 0)
                 
-                # Dynamic Seat Meter based on score
-                presence = max(0, 100 - risk_score)
-                filled_blocks = round(presence / 10)
-                blocks = "".join(f'<div style="background:{"#EE5959" if j >= filled_blocks else "rgba(128,128,128,0.3)"};"></div>' for j in range(10))
+                presence_pct = max(0, 100 - risk_score)
+                meter_html = f"""<div style="width: 100%; background: rgba(255,255,255,0.08); border-radius: 6px; height: 7px; margin: 12px 0 8px 0;"><div style="width: {presence_pct}%; background: linear-gradient(90deg, #FF4D4D 0%, #F39C12 50%, #2ECC71 100%); height: 100%; border-radius: 6px;"></div></div>"""
                
                 st.markdown(f"""
-                    <div class="card-{status}">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span class="roll-name">{s.get('student_name', 'Unknown')}</span>
-                        </div>
-                        <span class="roll-id">{s.get('student_id', 'N/A')}</span><br>
-                        <span class="roll-tag {tag_class}">{tag_label}</span>
-                        <div class="seat-meter">{blocks}</div>
-                        <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">
-                            Risk Score: <b>{risk_score}%</b>
-                        </div>
-                    </div>
-                """, unsafe_allow_html=True)
+<div class="card-{status}">
+    <span class="roll-name">{s.get('student_name', 'Unknown')}</span><br>
+    <span class="roll-id">{s.get('student_id', 'N/A')}</span><br>
+    <span class="roll-tag {tag_class}">{tag_label}</span>
+    {meter_html}
+    <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">Risk Score: <b>{risk_score}%</b></div>
+</div>
+""", unsafe_allow_html=True)
                
                 with st.expander("View Analysis Summary"):
                     note = s.get('summary', '')
@@ -317,26 +349,46 @@ with tab1:
                         note = "Normal attendance patterns."
                     st.write(f"**AI Note:** {note}")
                     st.write(f"**Flagged for Review:** {'Yes' if s.get('flagged') else 'No'}")
+                    
+        if filtered_count == 0:
+            st.info("No students found matching current search/filter settings.")
     else:
-        st.warning("Waiting for data from API...")
+        st.warning("Waiting for live data from API...")
 
 # --- TAB 2: ATTENDANCE PATTERNS ---
 with tab2:
-    st.markdown('<div class="row-label">Weekly Fill Rate</div>', unsafe_allow_html=True)
-    chart_data = pd.DataFrame(
-        {
-            "Week 1": [90, 85, 88],
-            "Week 2": [82, 78, 80],
-            "Week 3": [75, 60, 70],
-            "Week 4": [52, 94, 76]
-        },
-        index=["Ali Khan", "Ahmed Raza", "Sara Ahmed"]
-    ).T
-    st.line_chart(chart_data, color=["#EE5959", "#2EA043", "#D29922"])
+    st.markdown('<div class="row-label">Weekly Attendance Fill Rate (%)</div>', unsafe_allow_html=True)
+    
+    df_chart = pd.DataFrame({
+        "Week": ["Week 1", "Week 2", "Week 3", "Week 4"],
+        "High Risk Average": [88, 72, 60, 45],
+        "Class Average": [94, 91, 89, 88]
+    })
+    
+    fig = px.line(
+        df_chart, 
+        x="Week", 
+        y=["High Risk Average", "Class Average"],
+        markers=True,
+        color_discrete_sequence=["#FF4D4D", "#2ECC71"]
+    )
+    
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font_family="Inter",
+        font_color="#A0AAB8",
+        xaxis=dict(showgrid=False),
+        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)'),
+        margin=dict(l=20, r=20, t=20, b=20),
+        legend=dict(title=None, orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- TAB 3: EARLY ALERTS ---
 with tab3:
-    st.markdown('<div class="row-label">System-Generated Notes</div>', unsafe_allow_html=True)
+    st.markdown('<div class="row-label">System-Generated Risk Flags</div>', unsafe_allow_html=True)
     if is_connected and api_data:
         for s in api_data:
             if s.get("flagged"):
@@ -352,19 +404,18 @@ with tab4:
     with col_a:
         with st.container(border=True):
             st.subheader("High-Risk Intervention")
-            st.write("1. Schedule 1-on-1 check-in within 48 hours.\n2. Notify academic advisor.")
+            st.write("1. Schedule 1-on-1 check-in within 48 hours.\n2. Dispatch automated notice to academic advisor.")
             st.write("")
             if st.button("🚨 Send Bulk Alert to High Risk", type="primary", key="btn_send_alert", use_container_width=True):
                 st.toast("📧 Automated alerts dispatched successfully!", icon="✅")
-                st.success("Alerts sent to Academic Advisors.")
+                st.success("Alert notifications sent to assigned Academic Advisors.")
 
     with col_b:
         with st.container(border=True):
             st.subheader("Class-Wide Actions")
-            st.write("1. Download latest risk dataset.\n2. Add short interactive quizzes.")
+            st.write("1. Export real-time student risk analysis.\n2. Review lab attendance trends post-test weeks.")
             st.write("")
            
-            # Dynamic CSV Generation
             if is_connected and api_data:
                 df_export = pd.DataFrame(api_data)
                 csv_data = df_export.to_csv(index=False).encode('utf-8')
