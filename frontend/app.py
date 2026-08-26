@@ -10,16 +10,16 @@ st.set_page_config(page_title="The Empty Chair Rule", page_icon="🪑", layout="
 
 FASTAPI_URL = "http://127.0.0.1:8000"
 
-def get_risk_data():
+def get_pattern_data():
     try:
-        response = requests.get(f"{FASTAPI_URL}/api/risk-report", timeout=2)
+        response = requests.get(f"{FASTAPI_URL}/api/pattern-report", timeout=2)
         if response.status_code == 200:
             return response.json(), True
     except Exception:
         pass
     return None, False
 
-api_data, is_connected = get_risk_data()
+api_data, is_connected = get_pattern_data()
 
 # ============================================================
 # 2. ULTRA-MODERN DARK GLASSMORPHISM STYLING
@@ -46,7 +46,7 @@ section[data-testid="stSidebar"] {
     border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-/* ---------- Pulsing Animation for High Risk ---------- */
+/* ---------- Pulsing Animation for Pattern Flags ---------- */
 @keyframes pulse-red {
     0% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.4); }
     70% { box-shadow: 0 0 0 12px rgba(255, 77, 77, 0); }
@@ -85,7 +85,7 @@ section[data-testid="stSidebar"] {
 .hero p {
     font-size: 13px;
     opacity: 0.8;
-    max-width: 580px;
+    max-width: 620px;
     margin: 0;
     line-height: 1.5;
 }
@@ -130,14 +130,6 @@ section[data-testid="stSidebar"] {
     animation: pulse-red 2.5s infinite;
     transition: transform 0.2s ease;
 }
-.card-watch {
-    background: linear-gradient(145deg, rgba(243, 156, 18, 0.12) 0%, rgba(20, 24, 33, 0.9) 100%) !important;
-    border: 1.5px solid #F39C12 !important;
-    border-radius: 14px;
-    padding: 18px;
-    margin-bottom: 14px;
-    transition: transform 0.2s ease;
-}
 .card-stable {
     background: linear-gradient(145deg, rgba(46, 204, 113, 0.06) 0%, rgba(20, 24, 33, 0.9) 100%) !important;
     border: 1px solid rgba(46, 204, 113, 0.3) !important;
@@ -148,7 +140,7 @@ section[data-testid="stSidebar"] {
     transition: transform 0.2s ease;
 }
 
-.card-critical:hover, .card-watch:hover, .card-stable:hover {
+.card-critical:hover, .card-stable:hover {
     transform: translateY(-3px);
 }
 
@@ -174,7 +166,6 @@ section[data-testid="stSidebar"] {
     font-weight: 800;
 }
 .tag-critical { background: #FF4D4D; color: #FFFFFF !important; box-shadow: 0 0 10px rgba(255,77,77,0.5); }
-.tag-watch { background: #F39C12; color: #000000 !important; }
 .tag-stable { background: rgba(46, 204, 113, 0.15); color: #2ECC71 !important; border: 1px solid #2ECC71; }
 
 /* ---------- Glassmorphism KPI Metrics ---------- */
@@ -246,9 +237,9 @@ seat_html = "".join(f'<div class="seat {s}"></div>' for s in seat_states)
 
 st.markdown(f"""
     <div class="hero">
-        <div class="hero-eyebrow">Early Risk Monitoring · Live Roll Call</div>
+        <div class="hero-eyebrow">Context-Aware Early Support · Live Tracking</div>
         <h1>The Empty Chair Rule</h1>
-        <p>A seat that goes quiet is the first signal — before a grade drops, before a withdrawal form is filed. This dashboard tracks who's showing up, who's cooling off, and who needs assistance.</p>
+        <p>Connecting attendance with school events to spot meaningful patterns early. We don't diagnose or punish — we provide context so humans can support students when it matters most.</p>
         <div class="seat-strip">{seat_html}</div>
     </div>
 """, unsafe_allow_html=True)
@@ -256,11 +247,10 @@ st.markdown(f"""
 # ============================================================
 # 4. SIDEBAR CONTROLS & PRIVACY DISCLOSURE
 # ============================================================
-st.sidebar.markdown("### Roll Call Settings")
+st.sidebar.markdown("### Pattern Controls")
 
-search_query = st.sidebar.text_input("Search name or ID", placeholder="e.g. ST001")
-selected_risk = st.sidebar.multiselect("Risk level", ["High", "Medium", "Low"], default=["High", "Medium", "Low"])
-show_flagged_only = st.sidebar.checkbox("Flagged only")
+search_query = st.sidebar.text_input("Search name or ID", placeholder="e.g. ST101")
+show_flagged_only = st.sidebar.checkbox("Flagged Patterns Only")
 
 st.sidebar.divider()
 
@@ -271,162 +261,210 @@ else:
 
 st.sidebar.markdown("""
     <div class="privacy-box">
-        <b>🔒 FERPA Compliant & Protected</b><br>
-        Student risk analytics are encrypted and visible strictly to authorized academic advisors and faculty.
+        <b>🔒 FERPA Compliant & Supportive</b><br>
+        Pattern insights are strictly for human check-in guidance. Not designed for automated penalties or diagnostic labeling.
     </div>
 """, unsafe_allow_html=True)
 
 # ============================================================
-# 5. TABS CONTENT
+# 5. TABS CONTENT (Combined with Interventions & Class-Wide Actions)
 # ============================================================
-tab1, tab2, tab3, tab4 = st.tabs([
-    "Roll Call",
-    "Attendance Patterns",
-    "Early Alerts",
-    "Interventions"
+tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Pattern Detection",
+    "Personal Baselines",
+    "Why Flagged? (XAI)",
+    "Human Check-in",
+    "Interventions & Actions"
 ])
 
-# --- TAB 1: ROLL CALL ---
+# --- TAB 1: PATTERN DETECTION ---
 with tab1:
     if is_connected and api_data:
         total_students = len(api_data)
-        high_risk_count = sum(1 for s in api_data if s.get("risk_level") == "High")
-        medium_risk_count = sum(1 for s in api_data if s.get("risk_level") == "Medium")
-        
+        flagged_patterns = sum(1 for s in api_data if s.get("flagged"))
+        avg_confidence = int(sum(s.get("pattern_confidence", 0) for s in api_data) / total_students) if total_students > 0 else 0
+       
         m1, m2, m3 = st.columns(3)
-        m1.metric("TOTAL STUDENTS", total_students)
-        m2.metric("HIGH RISK", high_risk_count)
-        m3.metric("MEDIUM RISK", medium_risk_count)
+        m1.metric("MONITORED STUDENTS", total_students)
+        m2.metric("PATTERNS DETECTED", flagged_patterns)
+        m3.metric("AVG CONFIDENCE", f"{avg_confidence}%")
         st.write("")
 
-        st.markdown('<div class="row-label">Active Seating Chart</div>', unsafe_allow_html=True)
+        st.markdown('<div class="row-label">Active Pattern Dashboard</div>', unsafe_allow_html=True)
 
-        cols = st.columns(3)
-        tag_map = {
-            "critical": ("tag-critical", "🚨 High Risk"),
-            "watch": ("tag-watch", "⚠️ Watchlist"),
-            "stable": ("tag-stable", "✓ Low Risk")
-        }
-        
+        cols = st.columns(2)
         filtered_count = 0
         for i, s in enumerate(api_data):
-            if s.get("risk_level") not in selected_risk:
-                continue
             if show_flagged_only and not s.get("flagged"):
                 continue
             if search_query and (search_query.lower() not in s.get("student_name", "").lower() and search_query.lower() not in s.get("student_id", "").lower()):
                 continue
 
             filtered_count += 1
-            with cols[i % 3]:
-                risk_lvl = s.get("risk_level", "Low")
-                if risk_lvl == "High":
-                    status = "critical"
-                elif risk_lvl == "Medium":
-                    status = "watch"
-                else:
-                    status = "stable"
-
-                tag_class, tag_label = tag_map[status]
-                risk_score = s.get("risk_score", 0)
-                
-                presence_pct = max(0, 100 - risk_score)
-                meter_html = f"""<div style="width: 100%; background: rgba(255,255,255,0.08); border-radius: 6px; height: 7px; margin: 12px 0 8px 0;"><div style="width: {presence_pct}%; background: linear-gradient(90deg, #FF4D4D 0%, #F39C12 50%, #2ECC71 100%); height: 100%; border-radius: 6px;"></div></div>"""
+            with cols[i % 2]:
+                is_flagged = s.get("flagged", False)
+                status = "critical" if is_flagged else "stable"
+                tag_class = "tag-critical" if is_flagged else "tag-stable"
+                tag_label = "⚠️ Pattern Detected" if is_flagged else "✓ Normal Pattern"
+               
+                confidence = s.get("pattern_confidence", 0)
+                meter_html = f"""<div style="width: 100%; background: rgba(255,255,255,0.08); border-radius: 6px; height: 7px; margin: 12px 0 8px 0;"><div style="width: {confidence}%; background: linear-gradient(90deg, #F39C12 0%, #FF4D4D 100%); height: 100%; border-radius: 6px;"></div></div>"""
                
                 st.markdown(f"""
 <div class="card-{status}">
-    <span class="roll-name">{s.get('student_name', 'Unknown')}</span><br>
-    <span class="roll-id">{s.get('student_id', 'N/A')}</span><br>
+    <span class="roll-name">{s.get('student_name', 'Unknown')}</span> <span class="roll-id">({s.get('student_id', 'N/A')})</span><br>
     <span class="roll-tag {tag_class}">{tag_label}</span>
     {meter_html}
-    <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">Risk Score: <b>{risk_score}%</b></div>
+    <div style="font-size: 12px; font-weight: 600; margin-top: 6px;">Pattern Confidence: <b>{confidence}%</b></div>
+    <div style="font-size: 11px; opacity: 0.8; margin-top: 4px;">Baseline: {s.get('baseline_attendance', 0)}% | Current: {s.get('current_attendance', 0)}%</div>
 </div>
 """, unsafe_allow_html=True)
                
-                with st.expander("View Analysis Summary"):
-                    note = s.get('summary', '')
-                    if not note:
-                        note = "Normal attendance patterns."
-                    st.write(f"**AI Note:** {note}")
-                    st.write(f"**Flagged for Review:** {'Yes' if s.get('flagged') else 'No'}")
-                    
+                with st.expander("🔍 Pattern & Context Detail"):
+                    st.write(f"**Detected Pattern:** {s.get('pattern_detected', 'None')}")
+                    st.write(f"**Context Explanation:** {s.get('flag_reason', 'N/A')}")
+                   
         if filtered_count == 0:
-            st.info("No students found matching current search/filter settings.")
+            st.info("No students match the current filters.")
     else:
         st.warning("Waiting for live data from API...")
 
-# --- TAB 2: ATTENDANCE PATTERNS ---
+# --- TAB 2: PERSONAL BASELINES ---
 with tab2:
-    st.markdown('<div class="row-label">Weekly Attendance Fill Rate (%)</div>', unsafe_allow_html=True)
-    
-    df_chart = pd.DataFrame({
-        "Week": ["Week 1", "Week 2", "Week 3", "Week 4"],
-        "High Risk Average": [88, 72, 60, 45],
-        "Class Average": [94, 91, 89, 88]
-    })
-    
-    fig = px.line(
-        df_chart, 
-        x="Week", 
-        y=["High Risk Average", "Class Average"],
-        markers=True,
-        color_discrete_sequence=["#FF4D4D", "#2ECC71"]
-    )
-    
-    fig.update_layout(
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font_family="Inter",
-        font_color="#A0AAB8",
-        xaxis=dict(showgrid=False),
-        yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)'),
-        margin=dict(l=20, r=20, t=20, b=20),
-        legend=dict(title=None, orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
+    st.markdown('<div class="row-label">Individual Baseline vs Current Attendance (%)</div>', unsafe_allow_html=True)
+    st.caption("We compare each student to their own historical pattern, not just a global class threshold.")
+   
+    if is_connected and api_data:
+        df_chart = pd.DataFrame(api_data)
+        fig = px.bar(
+            df_chart,
+            x="student_name",
+            y=["baseline_attendance", "current_attendance"],
+            barmode="group",
+            labels={"value": "Attendance %", "variable": "Metric", "student_name": "Student"},
+            color_discrete_map={"baseline_attendance": "#8B949E", "current_attendance": "#FF4D4D"}
+        )
+       
+        fig.update_layout(
+            paper_bgcolor='rgba(0,0,0,0)',
+            plot_bgcolor='rgba(0,0,0,0)',
+            font_family="Inter",
+            font_color="#A0AAB8",
+            xaxis=dict(showgrid=False),
+            yaxis=dict(showgrid=True, gridcolor='rgba(255,255,255,0.05)'),
+            margin=dict(l=20, r=20, t=20, b=20),
+            legend=dict(title=None, orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+        )
+       
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("API offline — Connect to load baseline data.")
 
-# --- TAB 3: EARLY ALERTS ---
+# --- TAB 3: WHY FLAGGED? (XAI) ---
 with tab3:
-    st.markdown('<div class="row-label">System-Generated Risk Flags</div>', unsafe_allow_html=True)
+    st.markdown('<div class="row-label">Explainable AI (XAI) System Flags</div>', unsafe_allow_html=True)
     if is_connected and api_data:
         for s in api_data:
             if s.get("flagged"):
-                st.error(f"**Early Alert — {s.get('student_name')} ({s.get('student_id')})**\n\n{s.get('summary')}")
+                with st.container(border=True):
+                    st.error(f"**Pattern Alert — {s.get('student_name')} ({s.get('student_id')})**")
+                    st.write(f"**Pattern:** {s.get('pattern_detected')}")
+                    st.write(f"**Confidence Level:** {s.get('pattern_confidence')}%")
+                    st.info(f"**Why was this flagged?**\n{s.get('flag_reason')}")
     else:
-        st.info("No active alerts.")
+        st.info("No active pattern flags detected.")
 
-# --- TAB 4: INTERVENTIONS ---
+# --- TAB 4: HUMAN CHECK-IN & FOLLOW-UP ---
 with tab4:
-    st.markdown('<div class="row-label">Suggested Next Steps</div>', unsafe_allow_html=True)
-    col_a, col_b = st.columns(2)
+    st.markdown('<div class="row-label">Human Check-in & Outcome Log</div>', unsafe_allow_html=True)
+    st.caption("The AI detects patterns — humans decide what action to take.")
    
-    with col_a:
+    if is_connected and api_data:
+        flagged_list = [s for s in api_data if s.get("flagged")]
+        if flagged_list:
+            selected_student = st.selectbox("Select Student for Check-in:", [s['student_name'] for s in flagged_list])
+            s_data = next(s for s in flagged_list if s['student_name'] == selected_student)
+           
+            col_a, col_b = st.columns(2)
+            with col_a:
+                with st.container(border=True):
+                    st.subheader("Record Teacher Check-in")
+                    outcome = st.selectbox(
+                        "Outcome of Discussion:",
+                        ["Pending Check-in", "Academic difficulty", "Test anxiety", "Personal / Family issue", "Transportation problem", "Social / Peer issue", "Other"],
+                        key=f"out_{s_data['student_id']}"
+                    )
+                    notes = st.text_area("Counselor / Teacher Notes (Optional):", placeholder="e.g. Student requested tutoring assistance before Maths tests.")
+                   
+                    if st.button("🤝 Log Check-in Outcome", type="primary", use_container_width=True):
+                        try:
+                            payload = {
+                                "student_id": s_data['student_id'],
+                                "outcome": outcome,
+                                "notes": notes
+                            }
+                            res = requests.post(f"{FASTAPI_URL}/api/record-checkin", json=payload)
+                            if res.status_code == 200:
+                                st.toast("Check-in outcome saved successfully!", icon="✅")
+                                st.success(f"Log recorded for {s_data['student_name']}. System set to monitor post-support recovery.")
+                        except Exception as e:
+                            st.error(f"Error connecting to backend: {e}")
+
+            with col_b:
+                with st.container(border=True):
+                    st.subheader("Post-Support Monitoring")
+                    st.write("Tracks attendance pattern recovery following teacher support intervention.")
+                   
+                    followup_df = pd.DataFrame({
+                        "Timeline": ["Pre-Support", "Week 1", "Week 2", "Week 3", "Current"],
+                        "Post-Test Absences": [4, 3, 1, 0, 0]
+                    })
+                    fig2 = px.line(followup_df, x="Timeline", y="Post-Test Absences", markers=True, title="Absence Pattern Frequency")
+                    fig2.update_layout(
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        font_color="#A0AAB8",
+                        height=220
+                    )
+                    st.plotly_chart(fig2, use_container_width=True)
+        else:
+            st.info("No students currently require check-ins.")
+    else:
+        st.info("Waiting for API data...")
+
+# --- TAB 5: INTERVENTIONS & CLASS-WIDE ACTIONS ---
+with tab5:
+    st.markdown('<div class="row-label">Suggested Next Steps & Class-Wide Actions</div>', unsafe_allow_html=True)
+    
+    col_int1, col_int2 = st.columns(2)
+    
+    with col_int1:
         with st.container(border=True):
             st.subheader("High-Risk Intervention")
-            st.write("1. Schedule 1-on-1 check-in within 48 hours.\n2. Dispatch automated notice to academic advisor.")
-            st.write("")
-            if st.button("🚨 Send Bulk Alert to High Risk", type="primary", key="btn_send_alert", use_container_width=True):
-                st.toast("📧 Automated alerts dispatched successfully!", icon="✅")
-                st.success("Alert notifications sent to assigned Academic Advisors.")
-
-    with col_b:
+            st.markdown("""
+            1. Schedule 1-on-1 check-in within 48 hours.
+            2. Dispatch automated notice to academic advisor.
+            """)
+            if st.button("⚠️ Send Bulk Alert to High Risk", use_container_width=True):
+                st.toast("Bulk alerts dispatched successfully to academic advisors!", icon="🚨")
+                st.success("Notifications sent for all flagged high-risk students.")
+                
+    with col_int2:
         with st.container(border=True):
             st.subheader("Class-Wide Actions")
-            st.write("1. Export real-time student risk analysis.\n2. Review lab attendance trends post-test weeks.")
-            st.write("")
-           
-            if is_connected and api_data:
+            st.markdown("""
+            1. Export real-time student risk analysis.
+            2. Review lab attendance trends post-test weeks.
+            """)
+            if api_data:
                 df_export = pd.DataFrame(api_data)
                 csv_data = df_export.to_csv(index=False).encode('utf-8')
-                
                 st.download_button(
                     label="📥 Download Live Class Report (CSV)",
                     data=csv_data,
-                    file_name="Live_Risk_Summary_Report.csv",
+                    file_name="empty_chair_risk_report.csv",
                     mime="text/csv",
-                    key="btn_download_report",
                     use_container_width=True
                 )
             else:
-                st.write("Waiting for data to generate report...")
+                st.button("📥 Download Live Class Report (CSV)", disabled=True, use_container_width=True)
