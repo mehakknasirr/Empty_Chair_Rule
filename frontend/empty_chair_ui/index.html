@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Empty Chair Rule | Analytics Dashboard</title>
+   
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+   
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+   
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Chart.js CDN for Graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        theme_bg: 'var(--bg-color)',
+                        theme_card: 'var(--card-bg)',
+                        theme_text: 'var(--text-main)',
+                        theme_text_muted: 'var(--text-muted)',
+                        theme_accent: 'var(--accent-color)',
+                        theme_danger: 'var(--danger-color)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-theme_bg text-theme_text transition-colors duration-300 min-h-screen flex overflow-x-hidden">
+
+    <!-- Custom Toast Notification Container for Beautiful Popups -->
+    <div id="toast-container" class="fixed top-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-64 glass-panel border-r border-[var(--card-border)] flex flex-col justify-between hidden md:flex z-20 shrink-0 bg-slate-900/50 backdrop-blur-xl">
+        <div>
+            <!-- Logo / Brand Area -->
+            <div class="p-6 border-b border-[var(--card-border)] flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/30">
+                    <i class="ph-bold ph-chair text-xl"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-sm leading-tight">Empty Chair</h2>
+                    <span class="text-[10px] text-theme_accent font-semibold tracking-wider uppercase">AI Analytics</span>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1.5 flex flex-col">
+                <button onclick="switchTab(event, 'analytics-home')" class="nav-btn active flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--accent-color)] text-white font-medium text-sm shadow-md shadow-cyan-500/20 transition-all text-left w-full">
+                    <i class="ph-bold ph-house text-lg"></i> Analytics Home
+                </button>
+                <button onclick="switchTab(event, 'pattern-lab')" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-theme_text_muted hover:text-theme_text hover:bg-white/5 font-medium text-sm transition-all text-left w-full">
+                    <i class="ph-bold ph-squares-four text-lg"></i> Pattern Lab
+                </button>
+                <button onclick="switchTab(event, 'student-baselines')" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-theme_text_muted hover:text-theme_text hover:bg-white/5 font-medium text-sm transition-all text-left w-full">
+                    <i class="ph-bold ph-users text-lg"></i> Student Baselines
+                </button>
+                <button onclick="switchTab(event, 'system-context')" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-theme_text_muted hover:text-theme_text hover:bg-white/5 font-medium text-sm transition-all text-left w-full">
+                    <i class="ph-bold ph-shield-warning text-lg"></i> System Context
+                </button>
+                <button onclick="switchTab(event, 'interventions')" class="nav-btn flex items-center gap-3 px-4 py-3 rounded-xl text-theme_text_muted hover:text-theme_text hover:bg-white/5 font-medium text-sm transition-all text-left w-full">
+                    <i class="ph-bold ph-bell-ringing text-lg"></i> Interventions
+                </button>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col min-h-screen overflow-y-auto">
+       
+        <!-- Top Header -->
+        <header class="h-20 border-b border-[var(--card-border)] glass-panel px-8 flex items-center justify-between sticky top-0 z-10 gap-4 bg-slate-900/50 backdrop-blur-xl">
+            <!-- Search Bar -->
+            <div class="relative w-full max-w-md">
+                <i class="ph-bold ph-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-theme_text_muted text-base"></i>
+                <input id="searchInput" type="text" placeholder="Search students by name, ID, or pattern..." 
+                    class="w-full bg-slate-800 border border-slate-700 rounded-xl py-2.5 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-cyan-500 transition-all shadow-inner">
+            </div>
+
+            <div class="flex items-center gap-4 shrink-0">
+                <!-- Removed Light Theme Toggle Button from here -->
+                
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Connected to Live API
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD TAB CONTENT SECTIONS -->
+        <div class="p-8 space-y-8">
+           
+            <!-- 1. ANALYTICS HOME TAB -->
+            <div id="analytics-home" class="tab-content space-y-8">
+                <!-- Hero Banner Section -->
+                <div class="glass-panel p-8 rounded-3xl relative overflow-hidden border border-cyan-500/30 shadow-2xl flex items-center justify-between bg-gradient-to-r from-[var(--card-bg)] to-cyan-950/5">
+                    <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    
+                    <!-- Fixed: Sleeker Chair Icon with better positioning -->
+                    <i class="ph-duotone ph-chair text-[120px] text-cyan-500/10 absolute right-8 -bottom-4 pointer-events-none transform -rotate-12"></i>
+                    
+                    <div class="max-w-xl relative z-10">
+                        <span class="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 text-[10px] font-bold uppercase tracking-widest border border-cyan-500/20">AI Analytics Engine</span>
+                        <h2 class="text-3xl font-extrabold tracking-tight mt-3 mb-2">The Empty Chair Rule</h2>
+                        <p class="text-xs text-theme_text_muted leading-relaxed">
+                            Connecting attendance with school events to spot meaningful patterns early. We don't diagnose or punish — we provide context so humans can support students when it matters most.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Active Pattern Dashboard Section -->
+                <div>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                        <h3 class="text-sm font-bold uppercase tracking-wider text-theme_text_muted">Active Pattern Dashboard</h3>
+                        
+                        <!-- Properly Aligned Filter Buttons -->
+                        <div class="flex items-center gap-2">
+                            <button onclick="filterByRisk('all')" class="risk-filter-btn active px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 transition-all">All</button>
+                            <button onclick="filterByRisk('flagged')" class="risk-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-theme_text_muted hover:text-white border border-[var(--card-border)] transition-all">Flagged Only</button>
+                            <button onclick="filterByRisk('normal')" class="risk-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/[0.04] text-theme_text_muted hover:text-white border border-[var(--card-border)] transition-all">Normal</button>
+                        </div>
+                    </div>
+                    <div id="studentCardsContainer" class="grid grid-cols-1 lg:grid-cols-2 gap-6"></div>
+                </div>
+            </div>
+
+            <!-- 2. PATTERN LAB TAB -->
+            <div id="pattern-lab" class="tab-content hidden space-y-6 glass-panel p-8 rounded-3xl border border-[var(--card-border)]">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2"><i class="ph-bold ph-squares-four text-cyan-400"></i> Pattern Lab</h2>
+                    <p class="text-xs text-theme_text_muted mt-1">Analyze and configure behavioral pattern detection thresholds and rules.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-[var(--card-border)]">
+                        <h3 class="font-semibold text-sm mb-2 text-cyan-400">Post-Assessment Threshold</h3>
+                        <p class="text-xs text-theme_text_muted mb-4">Configure sensitivity windows following major tests and examinations.</p>
+                        <input type="range" min="1" max="7" value="3" class="w-full accent-cyan-400 cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-theme_text_muted mt-1"><span>1 Day</span><span>4 Days</span><span>7 Days</span></div>
+                    </div>
+                    <div class="p-5 rounded-2xl bg-white/[0.02] border border-[var(--card-border)]">
+                        <h3 class="font-semibold text-sm mb-2 text-cyan-400">Holiday Anomaly Window</h3>
+                        <p class="text-xs text-theme_text_muted mb-4">Adjust trigger limits for absences surrounding official school holidays.</p>
+                        <input type="range" min="1" max="10" value="4" class="w-full accent-cyan-400 cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-theme_text_muted mt-1"><span>1 Day</span><span>5 Days</span><span>10 Days</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. STUDENT BASELINES TAB -->
+            <div id="student-baselines" class="tab-content hidden space-y-6 glass-panel p-8 rounded-3xl border border-[var(--card-border)]">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2"><i class="ph-bold ph-users text-cyan-400"></i> Student Baselines</h2>
+                    <p class="text-xs text-theme_text_muted mt-1">We compare each student to their own historical pattern, not just a global class threshold.</p>
+                </div>
+                <div class="p-6 rounded-2xl bg-white/[0.02] border border-[var(--card-border)]">
+                    <canvas id="baselinesChart" height="110"></canvas>
+                </div>
+            </div>
+
+            <!-- 4. SYSTEM CONTEXT TAB (Expanded XAI Flags) -->
+            <div id="system-context" class="tab-content hidden space-y-6 glass-panel p-8 rounded-3xl border border-[var(--card-border)]">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2 text-rose-400"><i class="ph-bold ph-shield-warning"></i> Explainable AI (XAI) System Flags</h2>
+                    <p class="text-xs text-theme_text_muted mt-1">Review active system alerts, model confidence parameters, and system-wide flags.</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <!-- Flag 1 -->
+                    <div class="p-5 rounded-2xl bg-rose-500/[0.03] border border-rose-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-rose-400">Pattern Alert — Sara Ahmed (ST003)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 text-[10px] font-bold">Confidence: 85%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Post-Assessment Absence</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Sara Ahmed was absent 3 times following major exams. Significant deviation from personal baseline.
+                        </div>
+                    </div>
+
+                    <!-- Flag 2 -->
+                    <div class="p-5 rounded-2xl bg-amber-500/[0.03] border border-amber-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-amber-400">Pattern Alert — Ayesha Khan (ST005)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold">Confidence: 68%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Post-Holiday Anomaly</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Ayesha Khan showed repeated 1-day absence extensions surrounding long weekend breaks.
+                        </div>
+                    </div>
+
+                    <!-- Flag 3 -->
+                    <div class="p-5 rounded-2xl bg-rose-500/[0.03] border border-rose-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-rose-400">Pattern Alert — Fatima Noor (ST007)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-rose-500/10 text-rose-400 text-[10px] font-bold">Confidence: 92%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Consecutive Monday Absence</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Fatima missed 4 consecutive Mondays in a row. Attendance drops significantly early in the week.
+                        </div>
+                    </div>
+
+                    <!-- Flag 4 -->
+                    <div class="p-5 rounded-2xl bg-amber-500/[0.03] border border-amber-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-amber-400">Pattern Alert — Hamza Shah (ST008)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold">Confidence: 55%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Practical Lab Skips</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Absence detected specifically on scheduled lab evaluation days while attending morning lectures.
+                        </div>
+                    </div>
+
+                    <!-- Flag 5 -->
+                    <div class="p-5 rounded-2xl bg-emerald-500/[0.03] border border-emerald-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-emerald-400">Pattern Status — Usman Malik (ST006)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold">Confidence: 30%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Extended Absence Recovery</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Medical note submitted. Attendance trend is steadily recovering back to 90%+ baseline.
+                        </div>
+                    </div>
+
+                    <!-- Flag 6 -->
+                    <div class="p-5 rounded-2xl bg-amber-500/[0.03] border border-amber-500/20">
+                        <div class="flex justify-between items-start mb-2">
+                            <h3 class="font-bold text-sm text-amber-400">Pattern Alert — Ahmed Raza (ST002)</h3>
+                            <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-bold">Confidence: 60%</span>
+                        </div>
+                        <p class="text-xs text-theme_text_muted mb-3"><strong>Pattern:</strong> Friday Afternoon Drop</p>
+                        <div class="p-3 rounded-xl bg-cyan-950/30 border border-cyan-500/20 text-cyan-300 text-xs">
+                            <strong>Why was this flagged?</strong> Frequent early departure or missed attendance recorded specifically during final Friday sessions.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. INTERVENTIONS TAB -->
+            <div id="interventions" class="tab-content hidden space-y-6 glass-panel p-8 rounded-3xl border border-[var(--card-border)]">
+                <div>
+                    <h2 class="text-2xl font-bold flex items-center gap-2"><i class="ph-bold ph-bell-ringing text-cyan-400"></i> Human Check-In & Outcome Log</h2>
+                    <p class="text-xs text-theme_text_muted mt-1">The AI detects patterns — humans decide what action to take.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="p-6 rounded-2xl bg-white/[0.02] border border-[var(--card-border)] space-y-4">
+                        <h3 class="font-bold text-sm text-theme_text">Record Teacher Check-in</h3>
+                        
+                        <!-- Student Select Dropdown -->
+                        <div>
+                            <label class="block text-xs text-theme_text_muted mb-1">Select Student for Check-in:</label>
+                            <select id="studentSelect" class="w-full bg-slate-800 border border-slate-600 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="" disabled selected class="bg-slate-900 text-gray-400">Select a student...</option>
+                                <option value="Sara Ahmed (ST003)" class="bg-slate-800 text-white">Sara Ahmed (ST003)</option>
+                                <option value="Ayesha Khan (ST005)" class="bg-slate-800 text-white">Ayesha Khan (ST005)</option>
+                                <option value="Ali Khan (ST001)" class="bg-slate-800 text-white">Ali Khan (ST001)</option>
+                                <option value="Ahmed Raza (ST002)" class="bg-slate-800 text-white">Ahmed Raza (ST002)</option>
+                                <option value="Usman Malik (ST006)" class="bg-slate-800 text-white">Usman Malik (ST006)</option>
+                                <option value="Fatima Noor (ST007)" class="bg-slate-800 text-white">Fatima Noor (ST007)</option>
+                                <option value="Hassan Ali (ST004)" class="bg-slate-800 text-white">Hassan Ali (ST004)</option>
+                                <option value="Hamza Shah (ST008)" class="bg-slate-800 text-white">Hamza Shah (ST008)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Outcome Select Dropdown -->
+                        <div>
+                            <label class="block text-xs text-theme_text_muted mb-1">Outcome of Discussion:</label>
+                            <select id="outcomeSelect" class="w-full bg-slate-800 border border-slate-600 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="" disabled selected class="bg-slate-900 text-gray-400">Select outcome...</option>
+                                <option value="Pending Check-in" class="bg-slate-800 text-white">Pending Check-in</option>
+                                <option value="Contacted Parent / Guardian" class="bg-slate-800 text-white">Contacted Parent / Guardian</option>
+                                <option value="Scheduled 1-on-1 Meeting" class="bg-slate-800 text-white">Scheduled 1-on-1 Meeting</option>
+                                <option value="Tutoring Assistance Assigned" class="bg-slate-800 text-white">Tutoring Assistance Assigned</option>
+                                <option value="Medical Exception Verified" class="bg-slate-800 text-white">Medical Exception Verified</option>
+                                <option value="Escalated to Counselor" class="bg-slate-800 text-white">Escalated to Counselor</option>
+                                <option value="Resolved & Monitoring" class="bg-slate-800 text-white">Resolved & Monitoring</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs text-theme_text_muted mb-1">Counselor / Teacher Notes (Optional):</label>
+                            <textarea id="notesArea" placeholder="e.g. Student requested tutoring assistance before Maths tests." rows="3" class="w-full bg-slate-800 border border-slate-600 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 resize-none"></textarea>
+                        </div>
+                        
+                        <button id="logOutcomeBtn" class="w-full py-3 rounded-xl bg-cyan-500 text-slate-950 font-bold text-xs hover:bg-cyan-400 transition-all shadow-lg shadow-cyan-500/20">
+                            Log Check-in Outcome
+                        </button>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/[0.02] border border-[var(--card-border)] flex flex-col justify-between">
+                        <div>
+                            <h3 class="font-bold text-sm text-theme_text mb-1">Post-Support Monitoring</h3>
+                            <p class="text-[11px] text-theme_text_muted mb-4">Tracks attendance pattern recovery following teacher support intervention.</p>
+                            <div class="w-full h-[220px] relative">
+                                <canvas id="postSupportChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                    <div class="p-6 rounded-2xl bg-white/[0.02] border border-[var(--card-border)] space-y-3">
+                        <h3 class="font-bold text-sm text-theme_text">High-Risk Intervention</h3>
+                        <ol class="list-decimal list-inside text-xs text-theme_text_muted space-y-1">
+                            <li>Schedule 1-on-1 check-in within 48 hours.</li>
+                            <li>Dispatch automated notice to academic advisor.</li>
+                        </ol>
+                        <button id="bulkAlertBtn" class="w-full mt-2 py-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 font-semibold text-xs hover:bg-rose-500/20 transition-all">
+                            Send Bulk Alert to High Risk
+                        </button>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-white/[0.02] border border-[var(--card-border)] space-y-3">
+                        <h3 class="font-bold text-sm text-theme_text">Class-Wide Actions</h3>
+                        <ol class="list-decimal list-inside text-xs text-theme_text_muted space-y-1">
+                            <li>Export real-time student risk analysis.</li>
+                            <li>Review lab attendance trends post-test weeks.</li>
+                        </ol>
+                        <button id="downloadCsvBtn" class="w-full mt-2 py-2.5 rounded-xl bg-white/[0.05] border border-slate-600 text-white font-semibold text-xs hover:bg-white/10 hover:border-cyan-500 transition-all">
+                            Download Live Class Report (CSV)
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- TAB SWITCHING, CHARTS & BEAUTIFUL POPUPS SCRIPT -->
+    <script>
+        let postSupportChartInstance = null;
+
+        function switchTab(event, tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-[var(--accent-color)]', 'text-white', 'shadow-md', 'shadow-cyan-500/20');
+                btn.classList.add('text-theme_text_muted', 'hover:text-theme_text', 'hover:bg-white/5');
+            });
+            
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            const clickedBtn = event.currentTarget;
+            clickedBtn.classList.remove('text-theme_text_muted', 'hover:text-theme_text', 'hover:bg-white/5');
+            clickedBtn.classList.add('bg-[var(--accent-color)]', 'text-white', 'shadow-md', 'shadow-cyan-500/20');
+
+            // Trigger chart update if switching to interventions tab
+            if (tabId === 'interventions' && postSupportChartInstance) {
+                postSupportChartInstance.resize();
+                postSupportChartInstance.update();
+            }
+        }
+
+        // --- CUSTOM GLASSMORPHISM POPUP NOTIFICATION ---
+        function showCustomPopup(title, message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const popup = document.createElement('div');
+            
+            let borderClass = type === 'success' ? 'border-emerald-500/40 bg-slate-900/90 text-emerald-400 shadow-emerald-500/10' : 'border-rose-500/40 bg-slate-900/90 text-rose-400 shadow-rose-500/10';
+            let icon = type === 'success' ? 'ph-check-circle' : 'ph-warning-circle';
+
+            popup.className = `pointer-events-auto flex items-start gap-3 p-4 rounded-2xl border backdrop-blur-xl shadow-2xl transition-all duration-300 transform translate-x-12 opacity-0 max-w-sm ${borderClass}`;
+            popup.innerHTML = `
+                <i class="ph-bold ${icon} text-2xl shrink-0 mt-0.5"></i>
+                <div class="flex-1">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-white">${title}</h4>
+                    <p class="text-xs text-slate-300 mt-1 leading-snug">${message}</p>
+                </div>
+            `;
+            
+            container.appendChild(popup);
+            
+            requestAnimationFrame(() => {
+                popup.classList.remove('translate-x-12', 'opacity-0');
+            });
+            
+            setTimeout(() => {
+                popup.classList.add('opacity-0', 'translate-x-8');
+                setTimeout(() => popup.remove(), 300);
+            }, 3500);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            // Chart 1: Baseline Chart
+            const ctxBaseline = document.getElementById('baselinesChart');
+            if (ctxBaseline) {
+                new Chart(ctxBaseline.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ali Khan', 'Ahmed Raza', 'Sara Ahmed', 'Hassan Ali', 'Ayesha Khan', 'Usman Malik', 'Fatima Noor', 'Hamza Shah'],
+                        datasets: [
+                            { label: 'Baseline Attendance (%)', data: [90, 88, 92, 91, 89, 90, 94, 88], backgroundColor: '#64748b' },
+                            { label: 'Current Attendance (%)', data: [88, 87, 65, 90, 78, 89, 60, 75], backgroundColor: '#06b6d4' }
+                        ]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { display: false } }
+                        } 
+                    }
+                });
+            }
+
+            // Chart 2: Fixed Post Support Chart
+            const ctxPostSupport = document.getElementById('postSupportChart');
+            if (ctxPostSupport) {
+                postSupportChartInstance = new Chart(ctxPostSupport.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Pre-Support', 'Week 1', 'Week 2', 'Week 3', 'Current'],
+                        datasets: [{ 
+                            label: 'Absence Rate Frequency', 
+                            data: [4.2, 3.0, 1.8, 0.8, 0.5], 
+                            borderColor: '#06b6d4', 
+                            backgroundColor: 'rgba(6,182,212,0.15)', 
+                            borderWidth: 3,
+                            pointBackgroundColor: '#06b6d4',
+                            pointRadius: 5,
+                            fill: true, 
+                            tension: 0.35 
+                        }]
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        scales: { 
+                            y: { beginAtZero: true, max: 5, grid: { color: 'rgba(255,255,255,0.05)' } },
+                            x: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                        }, 
+                        plugins: { legend: { display: false } } 
+                    }
+                });
+            }
+
+            // 1. Log Check-in Button Handler
+            const logOutcomeBtn = document.getElementById('logOutcomeBtn');
+            if (logOutcomeBtn) {
+                logOutcomeBtn.addEventListener('click', () => {
+                    const student = document.getElementById('studentSelect').value;
+                    const outcome = document.getElementById('outcomeSelect').value;
+                    
+                    if (!student) {
+                        showCustomPopup("Selection Required", "Please select a student from the dropdown.", "error");
+                        return;
+                    }
+                    if (!outcome) {
+                        showCustomPopup("Selection Required", "Please select an outcome for the check-in.", "error");
+                        return;
+                    }
+
+                    showCustomPopup("Check-In Recorded", `Outcome '${outcome}' successfully logged for ${student}.`, 'success');
+                    document.getElementById('notesArea').value = ''; 
+                    
+                    document.getElementById('studentSelect').selectedIndex = 0;
+                    document.getElementById('outcomeSelect').selectedIndex = 0;
+                });
+            }
+
+            // 2. Send Bulk Alert Button Handler
+            const bulkAlertBtn = document.getElementById('bulkAlertBtn');
+            if (bulkAlertBtn) {
+                bulkAlertBtn.addEventListener('click', () => {
+                    showCustomPopup('Bulk Alerts Sent', 'High-risk automated notices dispatched to academic advisors.', 'success');
+                });
+            }
+
+            // 3. CSV Download Handler
+            const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+            if (downloadCsvBtn) {
+                downloadCsvBtn.addEventListener('click', () => {
+                    showCustomPopup('Exporting Data', 'Downloading Live Class Report CSV file...', 'success');
+                    
+                    const csvContent = "data:text/csv;charset=utf-8," 
+                        + "Student ID,Student Name,Baseline Attendance (%),Current Attendance (%),Risk Status,Flagged Pattern\n"
+                        + "ST003,Sara Ahmed,92,65,High,Post-Assessment Absence\n"
+                        + "ST005,Ayesha Khan,89,78,Medium,Post-Holiday Anomaly\n"
+                        + "ST007,Fatima Noor,94,60,High,Consecutive Monday Absence\n"
+                        + "ST008,Hamza Shah,88,75,Medium,Practical Lab Skips\n"
+                        + "ST001,Ali Khan,90,88,Low,None\n"
+                        + "ST002,Ahmed Raza,88,87,Low,Friday Afternoon Drop\n";
+                    
+                    const encodedUri = encodeURI(csvContent);
+                    const link = document.createElement("a");
+                    link.setAttribute("href", encodedUri);
+                    link.setAttribute("download", "Empty_Chair_Class_Risk_Report.csv");
+                    
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                });
+            }
+        });
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
