@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🪑 The Empty Chair Rule
+# 🪑 The Missing Seat
 
 **An AI-powered early risk monitoring system that detects meaningful student absences and engagement drops before grades decline.**
 
@@ -15,7 +15,7 @@
 
 ## 🚀 Project Overview
 
-**The Empty Chair Rule** tracks student participation patterns, lab attendances, and submission trends in real-time. Built with a modular architecture, the system provides faculty and academic advisors with actionable insights, risk heatmaps, and automated intervention tools to retain student engagement proactively.
+**The Missing Seat** tracks student participation patterns, lab attendances, and submission trends in real-time. Built with a modular architecture, the system provides faculty and academic advisors with actionable insights, risk heatmaps, and automated intervention tools to retain student engagement proactively.
 
 ---
 
