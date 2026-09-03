@@ -4,65 +4,148 @@
 
 **An AI-powered early risk monitoring system that detects meaningful student absences and engagement drops before grades decline.**
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-teal.svg)](https://fastapi.tiangolo.com/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28%2B-red.svg)](https://streamlit.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+Built for the **Alibaba Cloud Hackathon** 🏆
+
+![Python](https://img.shields.io/badge/Python-3.10+-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green)
+![Frontend](https://img.shields.io/badge/Frontend-HTML5%20%7C%20CSS3%20%7C%20JS-orange)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 </div>
 
 ---
 
-## 🚀 Project Overview
+## 📖 Overview
 
-**The Missing Seat** tracks student participation patterns, lab attendances, and submission trends in real-time. Built with a modular architecture, the system provides faculty and academic advisors with actionable insights, risk heatmaps, and automated intervention tools to retain student engagement proactively.
+**The Missing Seat** is an early-warning system that helps educators and academic advisors spot at-risk students before it's too late. By continuously tracking attendance, lab participation, and submission trends, the platform surfaces meaningful drop-offs — not just raw absence counts — and turns them into clear, actionable risk signals.
+
+Powered by a modular backend and a dynamic dashboard, faculty get real-time insight into student engagement instead of discovering problems after grades have already slipped.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## ✨ Key Features
 
-* **Frontend:** Streamlit / Custom Web UI (Dynamic Dashboard with Neon Light/Dark Themes)
-* **Backend:** FastAPI (RESTful API & Real-time Stats Engine)
-* **Data & Machine Learning:** Python, Pandas, Predictive Analytics & Pattern Recognition
+| Feature | Description |
+|---|---|
+| 🟢 **Real-Time Risk Dashboard** | Live, color-coded view of student engagement status |
+| 🚦 **Risk Categorization** | Automated tagging into risk tiers based on attendance and activity patterns |
+| 📈 **Predictive Pattern Recognition** | Analytics engine detects early trends before they become failures |
+| 🌓 **Neon Light/Dark Dashboard** | Responsive, modern UI built for classroom and admin use |
+| 🔔 **Actionable Insights** | Surfaces at-risk students so advisors can intervene early |
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | HTML5, Tailwind CSS, JavaScript — dynamic dashboard with light/dark theming |
+| **Backend** | FastAPI — REST API and real-time risk analytics engine |
+| **Data & Analytics** | Python, Pandas — predictive analytics and pattern recognition |
+
+---
+
+## 🏗️ Architecture
+
+```
+┌───────────────────┐        REST API        ┌──────────────────┐
+│    Frontend        │ ─────────────────────▶ │    Backend        │
+│  (HTML/CSS/JS)      │ ◀───────────────────── │   (FastAPI)        │
+└───────────────────┘                         └──────────────────┘
+                                                        │
+                                                        ▼
+                                              ┌──────────────────┐
+                                              │  AI Data Layer     │
+                                              │  (Pandas / Risk     │
+                                              │   Analysis Engine)  │
+                                              └──────────────────┘
+```
 
 ---
 
 ## 📂 Repository Structure
 
 ```text
-EMPTY_CHAIR_RULE/
-├── frontend/             # Streamlit dashboard & UI interface
-├── backend/              # FastAPI backend services & API endpoints
-├── data_analysis/        # ML model scripts & risk pattern reports
-├── .gitignore            # Git exclusion rules
-└── README.md             # Project documentation
+The_Missing_Seat/
+├── ai_data/                  # ML datasets, analysis scripts, and risk reports
+│   ├── analyze_risk.py
+│   ├── attendance_dataset.csv
+│   ├── generate_dataset.py
+│   ├── risk_analysis.csv
+│   └── risk_report.json
+├── backend/                  # FastAPI backend services & API endpoints
+│   ├── main.py
+│   └── requirements.txt
+├── frontend/                 # Interactive web dashboard
+│   └── missing_seat_ui/
+│       ├── index.html
+│       ├── script.js
+│       └── style.css
+├── .gitignore
+├── LICENSE                   # MIT License
+└── README.md
+```
 
-⚡ Quick Start Guide
-1. Clone the Repository
-git clone [https://github.com/mehakknasir/Empty_Chair_Rule.git](https://github.com/mehakknasir/Empty_Chair_Rule.git)
-cd Empty_Chair_Rule
+---
 
-2. Set Up & Run Backend
+## ⚡ Quick Start
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/mehakknasir/The_Missing_Seat.git
+cd The_Missing_Seat
+```
+
+### 2. Backend Setup
+```bash
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload
+```
+Backend API available at: **http://127.0.0.1:8000**
 
-Backend server runs at: ⁠http://127.0.0.1:8000⁠
+### 3. Frontend Launch
+Simply open `frontend/missing_seat_ui/index.html` in any browser, or launch it via VS Code's **Live Server** extension for hot-reload during development.
 
-3. Set Up & Run Frontend
-cd ../frontend
-pip install streamlit requests pandas
-streamlit run app.py
+---
 
-Frontend dashboard opens at: ⁠http://localhost:8501⁠
-✨ Key Features
- Live Roll Call View: Grid chart representing real-time student seating and status.
- Risk Categorization: Dynamic tagging for Critical, Watch, and Stable levels.
- Attendance Trends: Historical pattern visualization using multi-week fill rates.
- Actionable Interventions: Automated advisor alerts, one-click check-ins, and downloadable CSV reports.
-🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page.
-📝 License
-This project is open-source and available under the MIT License.
+## 🖥️ Usage
+
+1. Start the FastAPI backend to power the risk analytics engine and API endpoints.
+2. Open the dashboard to view real-time student engagement and risk status.
+3. Review students flagged as at-risk and take early action through advisor outreach.
+4. Use the underlying datasets in `ai_data/` to retrain or fine-tune the risk model as needed.
+
+---
+
+## 🗺️ Roadmap
+
+- [ ] Deploy on Alibaba Cloud (ECS / Function Compute)
+- [ ] Integrate with existing LMS platforms (Canvas, Moodle)
+- [ ] Add configurable risk-scoring thresholds per institution
+- [ ] Email/SMS notification channel for advisors
+- [ ] Role-based access control for faculty vs. administrators
+
+---
+
+## 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/mehakknasir/The_Missing_Seat/issues) or open a pull request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is open-source and available under the [MIT License](LICENSE).
+
+---
+
+<div align="center">
 
 
